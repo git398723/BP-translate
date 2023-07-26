@@ -8,18 +8,30 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace BPtranslate {
     public sealed class Program {
-        static X509Certificate2 serverCertificate = new X509Certificate2(Path.Combine(Directory.GetCurrentDirectory(), "bpmasterdata.pfx"));
+        static X509Certificate2 serverCertificate;
         static string masterDataIp;
         static string hostsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "system32/drivers/etc/hosts");
 
         const string redirectEntry = "127.0.0.1 masterdata-main.aws.blue-protocol.com";
+        const string masterDataAwsHost = "masterdata-main.aws.blue-protocol.com";
 
         static void RunServer() {
             TcpListener listener = new TcpListener(IPAddress.Loopback, 443);
-            listener.Start();
+            try {
+                listener.Start();
+            } catch (Exception) {
+                Console.WriteLine("[ERROR] Port 443 has been used, make sure port 443 is not used before running this application.");
+                RemoveRedirectFromHosts();
+                RemoveCertificate();
+                Console.WriteLine("\nThe program will close in 5 seconds");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(1);
+                return;
+            }
 
             new Task(() => {
                 while (true) {
@@ -29,7 +41,7 @@ namespace BPtranslate {
                         clientStream.AuthenticateAsServer(serverCertificate, clientCertificateRequired: false, checkCertificateRevocation: false);
 
                         SslStream serverStream = new SslStream(new TcpClient(masterDataIp, 443).GetStream(), false);
-                        serverStream.AuthenticateAsClient("masterdata-main.aws.blue-protocol.com");
+                        serverStream.AuthenticateAsClient(masterDataAwsHost);
 
                         ProxyConnection(clientStream, serverStream, true);
                         ProxyConnection(serverStream, clientStream, false);
@@ -62,9 +74,9 @@ namespace BPtranslate {
                             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + loc.Length + "\r\nConnection: keep-alive\r\n\r\n" + loc;
                             src.Write(Encoding.ASCII.GetBytes(response));
 
-                            Console.WriteLine("Translation sent, the program will close in 30 seconds");
+                            Console.WriteLine("Translation sent, the program will close in 15 seconds");
+                            Thread.Sleep(TimeSpan.FromSeconds(15));
                             RemoveRedirectFromHosts();
-                            Thread.Sleep(TimeSpan.FromSeconds(30));
                             RemoveCertificate();
                             Environment.Exit(0);
                             continue;
@@ -77,18 +89,31 @@ namespace BPtranslate {
         }
 
         public static int Main(string[] args) {
+            Console.Title = "app";
+
+            if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "bpmasterdata.pfx"))) {
+                serverCertificate = new X509Certificate2(Path.Combine(Directory.GetCurrentDirectory(), "bpmasterdata.pfx"));
+            } else {
+                Console.WriteLine("[ERROR] Unable to locate bpmasterdata.pfx file, please make sure the file is in the same location with this application.");
+                Console.WriteLine("\nThe program will close in 10 seconds");
+                Thread.Sleep(TimeSpan.FromSeconds(10));
+                Environment.Exit(1);
+                return 1;
+            }
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "loc.json"))) {
+                Console.WriteLine("[ERROR] Unable to locate loc.json file, please make sure the file is in the same location with this application.");
+                Console.WriteLine("\nThe program will close in 10 seconds");
+                Thread.Sleep(TimeSpan.FromSeconds(10));
+                Environment.Exit(1);
+                return 1;
+            }
+
             handler = new ConsoleEventDelegate(ConsoleEventCallback);
             SetConsoleCtrlHandler(handler, true);
 
-            using (X509Store store = new X509Store(StoreName.Root, StoreLocation.LocalMachine)) {
-                store.Open(OpenFlags.ReadWrite);
-                store.Add(serverCertificate);
-            }
-
-            if (File.ReadAllText(hostsFile).Contains(redirectEntry)) {
-                RemoveRedirectFromHosts();
-            }
+            RemoveRedirectFromHosts();
             UpdateMasterDataRealIp();
+            AddCertificate();
             AddRedirectToHosts();
 
             RunServer();
@@ -99,25 +124,63 @@ namespace BPtranslate {
         }
 
         static void AddRedirectToHosts() {
-            //Check if the file already ends with a new line or we need to add it
-            bool addNewLine = true;
-            using (FileStream fs = new FileStream(hostsFile, FileMode.Open))
-            if(fs.Length == 0) {
-                addNewLine = false;
-            } else {
-                using (BinaryReader rd = new BinaryReader(fs)) {
-                    fs.Position = fs.Length - 1;
-                    int last = rd.Read();
-                    if (last == 10) addNewLine = false;
-                }
-            }
+            try {
+                string textHostsFile = File.ReadAllText(hostsFile);
+                if (textHostsFile.Contains(redirectEntry)) return;
 
-            string toAppend = (addNewLine ? Environment.NewLine + redirectEntry : redirectEntry);
-            File.AppendAllText(hostsFile, toAppend);
+                bool addNewLine = true;
+                using (FileStream fs = new FileStream(hostsFile, FileMode.Open)) {
+                    if (fs.Length == 0) {
+                        addNewLine = false;
+                    } else {
+                        using (BinaryReader rd = new BinaryReader(fs)) {
+                            fs.Position = fs.Length - 1;
+                            int last = rd.Read();
+                            if (last == 10) addNewLine = false;
+                        }
+                    }
+                }
+
+                string toAppend = (addNewLine ? Environment.NewLine + redirectEntry : redirectEntry);
+                File.AppendAllText(hostsFile, toAppend);
+            } catch (Exception e) {
+                Console.WriteLine("[ERROR] Unable to access hosts file, please make sure:");
+                Console.WriteLine("- File/Directory Ownership is the current logged-in user");
+                Console.WriteLine("- File/Directory Permission is not Read-Only");
+                Console.WriteLine("- Crrent logged-in user is Administrator");
+                RemoveCertificate();
+                Console.WriteLine("\nThe program will close in 5 seconds");
+                Console.WriteLine("\n\nAdditional Error Message:");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(1);
+            }
         }
 
         static void RemoveRedirectFromHosts() {
-            File.WriteAllText(hostsFile, File.ReadAllText(hostsFile).Replace(redirectEntry, ""));
+            try {
+                string textHostsFile = File.ReadAllText(hostsFile);
+                if (textHostsFile.Contains(redirectEntry)) {
+                    File.WriteAllText(hostsFile, textHostsFile.Replace(redirectEntry, ""));
+                }
+            } catch (Exception) {
+                Console.WriteLine("[ERROR] Unable to access hosts file, please make sure:");
+                Console.WriteLine("- File/Directory Ownership is the current logged-in user");
+                Console.WriteLine("- File/Directory Permission is not Read-Only");
+                Console.WriteLine("- Current logged-in user is Administrator");
+                RemoveCertificate();
+                Console.WriteLine("\nThe program will close in 5 seconds");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(1);
+            }
+        }
+
+        static void AddCertificate() {
+            using (X509Store store = new X509Store(StoreName.Root, StoreLocation.LocalMachine)) {
+                store.Open(OpenFlags.ReadWrite);
+                store.Add(serverCertificate);
+            }
         }
 
         static void RemoveCertificate() {
@@ -128,7 +191,7 @@ namespace BPtranslate {
         }
 
         static void UpdateMasterDataRealIp() {
-            masterDataIp = Dns.GetHostEntry("masterdata-main.aws.blue-protocol.com").AddressList[0].ToString();
+            masterDataIp = Dns.GetHostEntry(masterDataAwsHost).AddressList[0].ToString();
         }
 
         //Handle console close
