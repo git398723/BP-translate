@@ -208,7 +208,7 @@ namespace BPtranslate {
             Console.WriteLine($"[LOAD] Installed Version: {installedVersion}");
 
             if (latestVersion != 0.0 && latestVersion > installedVersion) {
-                isDownload = true;
+                if (isAutoUpdate) isDownload = true;
                 Console.WriteLine($"[INFO] New Version Found: {latestVersion}");
             } else {
                 Console.WriteLine($"[INFO] Latest Version: {latestVersion}");
