@@ -15,6 +15,8 @@ So far it does not work if you use a proxy for Blue Protocol. VPN is fine
 1. Fixed "Translation sent" but in the game didn't translated.
 2. Auto-Update Latest Translation.
 
+# Frequently Asked Question
+
 ## How does it work?
 
 The program doesn't change game files, doesn't interact with the game memory, doesn't do dll injection
@@ -26,6 +28,17 @@ Then it creates a server at localhost that proxies all requests to the real serv
 
 Follow `Installation and usage` in this repository: https://github.com/digitalstars/BlueProtocol-Translate  
 This repository purpose is used to host the code, and remote setting for auto-update translation.
+
+## How to change translation language based on auto-update behavior
+
+1. Open file using notepad: `bptl_setting.json`.
+2. Change value of `selected_language` to available language.
+3. Save.
+4. Reopen the application exe
+
+Current available language is:
+- English = `en`
+- Indonesia = `id`
 
 ## Known issue
 
