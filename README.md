@@ -10,6 +10,11 @@ So far it does not work if you use a proxy for Blue Protocol. VPN is fine
 
 [If you have any problems or want to help with translations, check out this discord](https://discord.gg/nVfDBy97aK) 
 
+## Feature ahead original repository
+
+1. Fixed "Translation sent" but in the game didn't translated.
+2. Auto-Update Latest Translation.
+
 ## How does it work?
 
 The program doesn't change game files, doesn't interact with the game memory, doesn't do dll injection
@@ -20,7 +25,7 @@ Then it creates a server at localhost that proxies all requests to the real serv
 ## How to use it?
 
 Follow `Installation and usage` in this repository: https://github.com/digitalstars/BlueProtocol-Translate  
-The current repository is used mostly to host code. A more up-to-date translation can be found at the link above
+This repository purpose is used to host the code, and remote setting for auto-update translation.
 
 ## Known issue
 
