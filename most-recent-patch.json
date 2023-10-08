@@ -1,5 +1,9 @@
 {
-	"_available": ["en", "id"],
+	"_available": ["en", "id", "es", "pt", "ru", "de"],
 	"en": [20231008.1545, "English", "https://cdn.discordapp.com/attachments/295519814972342273/1160471902595334224/loc.zip"],
-	"id": [20231008.1545, "Indonesia", "https://cdn.discordapp.com/attachments/295519814972342273/1160472073181876264/loc.zip"]
+	"id": [20231008.1545, "Indonesia", "https://cdn.discordapp.com/attachments/295519814972342273/1160472073181876264/loc.zip"],
+	"es": [20230921.2050, "Espanol", "https://cdn.discordapp.com/attachments/295519814972342273/1160484357111296103/loc.zip"],
+	"pt": [20230921.2050, "Portugues", "https://cdn.discordapp.com/attachments/295519814972342273/1160484175179169862/loc.zip"],
+	"ru": [20230921.2050, "Russian", "https://cdn.discordapp.com/attachments/295519814972342273/1160485101298262046/loc.zip"],
+	"de": [20230921.2050, "Deutsch", "https://cdn.discordapp.com/attachments/295519814972342273/1160483744646451220/loc.zip"]
 }
