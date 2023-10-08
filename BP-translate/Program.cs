@@ -12,6 +12,8 @@ using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Net.Http;
 using Ionic.Zip;
+using System.Reflection;
+using System.Net.Http.Headers;
 
 namespace BPtranslate {
     public sealed class Program {
@@ -37,15 +39,22 @@ namespace BPtranslate {
         const string fileName_zip = "loc.zip";
         static string filePath_zip = Path.Combine(Directory.GetCurrentDirectory(), fileName_zip);
 
+        const string locVersionFormat = "YYYYMMDD-HHmm";
+        static string applicationVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
         static void RunServer() {
             TcpListener listener = new TcpListener(IPAddress.Loopback, 443);
             try {
                 listener.Start();
-            } catch (Exception) {
+            } catch (Exception e) {
                 Console.WriteLine("[ERROR] Port 443 has been used, make sure port 443 is not used before running this application.");
+                Console.WriteLine("- If xampp is installed, please temporarily turn off the apache web server.");
                 RemoveRedirectFromHosts();
                 RemoveCertificate();
                 Console.WriteLine("\nThe program will close in 5 seconds");
+                Console.WriteLine("\n\nAdditional Error Message:");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 Environment.Exit(1);
                 return;
@@ -124,36 +133,30 @@ namespace BPtranslate {
             bool isUnpack = false;
 
             JObject jsonObjectAppSetting = new JObject();
+            bool isOnlineMode = true;
             bool isAutoUpdate = true;
             string selectedLanguage = "en";
             double installedVersion = 0.0;
 
             JObject jsonOjectMostRecentPatch = new JObject();
+            string appLatestVersion = "0.0.0.0";
             double latestVersion = 0.0;
             string alternativeLanguageName = "";
             string urlPath_LocZip = "";
-
-            Console.Write($"[INIT] Loading '{fileName_MostRecentPatch}' from remote url...");
-            try {
-                using (HttpClient client = new HttpClient()) {
-                    HttpResponseMessage response = await client.GetAsync(urlPath_MostRecentPatch);
-                    if (response.IsSuccessStatusCode) {
-                        string jsonString = await response.Content.ReadAsStringAsync();
-                        jsonOjectMostRecentPatch = JObject.Parse(jsonString);
-                        Console.WriteLine($"\r[INIT] Success to load '{fileName_MostRecentPatch}' from remote url.");
-                    } else {
-                        Console.WriteLine($"\r[INIT] Fail to load '{fileName_MostRecentPatch}' from remote url, skipping. Status Code: {response.StatusCode}");
-                    }
-                }
-            } catch (Exception e) {
-                Console.WriteLine($"\r[INIT] Fail to load '{fileName_MostRecentPatch}' from remote url, skipping.\n{e.Message}");
-            }
+            string joinedAvailable = "";
 
             Console.Write($"[INIT] Loading file '{fileName_bptlSetting}'...");
             if (File.Exists(filePath_bptlSetting)) {
                 string jsonString = File.ReadAllText(filePath_bptlSetting);
                 try {
                     jsonObjectAppSetting = JObject.Parse(jsonString);
+
+                    try {
+                        isOnlineMode = (bool) jsonObjectAppSetting["online_mode"];
+                    } catch (Exception) {
+                        jsonObjectAppSetting["online_mode"] = isOnlineMode;
+                        isSave = true;
+                    }
 
                     try {
                         isAutoUpdate = (bool) jsonObjectAppSetting["auto_update"];
@@ -179,80 +182,119 @@ namespace BPtranslate {
                 }
             } else {
                 Console.WriteLine($"\r[INIT] File not found: '{fileName_bptlSetting}', skipping.");
+                jsonObjectAppSetting["online_mode"] = isOnlineMode;
                 jsonObjectAppSetting["auto_update"] = isAutoUpdate;
                 jsonObjectAppSetting["selected_language"] = selectedLanguage;
                 jsonObjectAppSetting[$"installed_version_{selectedLanguage}"] = installedVersion;
                 isSave = true;
             }
 
-            if (jsonOjectMostRecentPatch.Properties().Any()) {
-                JArray availableLanguage = jsonOjectMostRecentPatch["_available"] as JArray;
-                string joinedAvailable = string.Join(", ", availableLanguage.Select(item => (string) item));
-                Console.WriteLine($"[INFO] Available language: {joinedAvailable}");
-                if (!availableLanguage.Any(item => (string) item == selectedLanguage)) {
-                    Console.WriteLine($"[WARN] Invalid selected language: '{selectedLanguage}', revert to '{availableLanguage[0]}'");
-                    selectedLanguage = (string) availableLanguage[0];
-                    jsonObjectAppSetting["selected_language"] = selectedLanguage;
-                    isSave = true;
-                }
-
-                if (jsonOjectMostRecentPatch.ContainsKey(selectedLanguage)) {
-                    JArray arraySelectedLanguage = jsonOjectMostRecentPatch[selectedLanguage] as JArray;
-                    latestVersion = (double) arraySelectedLanguage[0];
-                    alternativeLanguageName = $" ({arraySelectedLanguage[1]})";
-                    urlPath_LocZip = (string) arraySelectedLanguage[2];
-                }
-            }
-            Console.WriteLine($"[LOAD] Selected Language: {selectedLanguage}{alternativeLanguageName}");
-            Console.WriteLine($"[LOAD] Auto Update: {isAutoUpdate}");
-            Console.WriteLine($"[LOAD] Installed Version: {installedVersion}");
-
-            if (latestVersion != 0.0 && latestVersion > installedVersion) {
-                if (isAutoUpdate) isDownload = true;
-                Console.WriteLine($"[INFO] New Version Found: {latestVersion}");
+            Console.WriteLine($"[APP] Online Mode: {isOnlineMode}");
+            if (!isOnlineMode) {
+                Console.WriteLine($"[APP] Version: {applicationVersion}");
+                Console.WriteLine($"[LOC] Auto Update: False (Offline Mode), {isAutoUpdate} (Actual)");
+                Console.WriteLine($"[LOC] Selected Language: {selectedLanguage}");
+                Console.WriteLine($"[LOC] Installed Version: {installedVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
             } else {
-                Console.WriteLine($"[INFO] Latest Version: {latestVersion}");
-            }
-
-            if (isDownload) {
-                Console.Write($"[INIT] Downloading '{fileName_zip}' from remote url...");
+                Console.Write($"[INIT] Loading '{fileName_MostRecentPatch}' from remote url...");
                 try {
                     using (HttpClient client = new HttpClient()) {
-                        HttpResponseMessage response = await client.GetAsync(urlPath_LocZip);
-
+                        client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue {
+                            NoCache = true
+                        };
+                        HttpResponseMessage response = await client.GetAsync(urlPath_MostRecentPatch);
                         if (response.IsSuccessStatusCode) {
-                            using (FileStream fileStream = File.Create(filePath_zip)) {
-                                await response.Content.CopyToAsync(fileStream);
-                            }
-                            isUnpack = true;
-                            ClearCurrentConsoleLine();
-                            Console.WriteLine($"\r[INIT] Downloaded '{fileName_zip}'");
+                            string jsonString = await response.Content.ReadAsStringAsync();
+                            jsonOjectMostRecentPatch = JObject.Parse(jsonString);
+                            Console.WriteLine($"\r[INIT] Success to load '{fileName_MostRecentPatch}' from remote url.");
                         } else {
-                            Console.WriteLine($"\r[INIT] Fail to download '{fileName_zip}' from remote url, skipping. Status Code: {response.StatusCode}");
+                            Console.WriteLine($"\r[INIT] Fail to load '{fileName_MostRecentPatch}' from remote url, skipping. Status Code: {response.StatusCode}");
                         }
                     }
                 } catch (Exception e) {
-                    Console.WriteLine($"\r[INIT] Fail to download '{fileName_zip}' from remote url, skipping.\n{e.Message}");
+                    Console.WriteLine($"\r[INIT] Fail to load '{fileName_MostRecentPatch}' from remote url, skipping.\n{e.Message}");
                 }
-            }
 
-            if (isUnpack) {
-                Console.Write($"[INIT] Unpacking '{fileName_zip}'...");
-                try {
-                    string extractDirectory = Directory.GetCurrentDirectory();
-
-                    using (ZipFile zip = ZipFile.Read(filePath_zip)) {
-                        zip.ExtractAll(extractDirectory, ExtractExistingFileAction.OverwriteSilently);
+                if (jsonOjectMostRecentPatch.Properties().Any()) {
+                    appLatestVersion = (string) jsonOjectMostRecentPatch["_appver"];
+                    JArray availableLanguage = jsonOjectMostRecentPatch["_available"] as JArray;
+                    joinedAvailable = string.Join(", ", availableLanguage.Select(item => (string) item));
+                    if (!availableLanguage.Any(item => (string) item == selectedLanguage)) {
+                        Console.WriteLine($"[WARN] Invalid selected language: '{selectedLanguage}', revert to '{availableLanguage[0]}'");
+                        selectedLanguage = (string) availableLanguage[0];
+                        jsonObjectAppSetting["selected_language"] = selectedLanguage;
+                        isSave = true;
                     }
 
-                    jsonObjectAppSetting[$"installed_version_{selectedLanguage}"] = latestVersion;
-                    isSave = true;
+                    if (jsonOjectMostRecentPatch.ContainsKey(selectedLanguage)) {
+                        JArray arraySelectedLanguage = jsonOjectMostRecentPatch[selectedLanguage] as JArray;
+                        latestVersion = (double) arraySelectedLanguage[0];
+                        alternativeLanguageName = $" ({arraySelectedLanguage[1]})";
+                        urlPath_LocZip = (string) arraySelectedLanguage[2];
+                    }
+                }
 
-                    ClearCurrentConsoleLine();
-                    Console.WriteLine($"\r[INIT] Unpacked '{fileName_zip}'");
-                } catch (Exception e) {
-                    ClearCurrentConsoleLine();
-                    Console.WriteLine($"\r[INIT] Fail to unpack '{fileName_zip}', skipping.\n{e.Message}");
+                Console.WriteLine($"[APP] Installed Version: {applicationVersion}");
+
+                if (appLatestVersion != "0.0.0.0" && appLatestVersion != applicationVersion) {
+                    Console.WriteLine($"[APP] New Version Found: {appLatestVersion}, download: https://github.com/DOTzX/BP-translate/releases");
+                } else {
+                    Console.WriteLine($"[APP] Latest Version: {appLatestVersion}");
+                }
+
+                Console.WriteLine($"[LOC] Auto Update: {isAutoUpdate}");
+
+                if (joinedAvailable.Length > 0) Console.WriteLine($"[LOC] Available language: {joinedAvailable}");
+                Console.WriteLine($"[LOC] Selected Language: {selectedLanguage}{alternativeLanguageName}");
+                Console.WriteLine($"[LOC] Installed Version: {installedVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+
+                if (latestVersion != 0.0 && latestVersion > installedVersion) {
+                    if (isAutoUpdate) isDownload = true;
+                    Console.WriteLine($"[LOC] New Version Found: {latestVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                } else {
+                    Console.WriteLine($"[LOC] Latest Version: {latestVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                }
+
+                if (isDownload) {
+                    Console.Write($"[INIT] Downloading '{fileName_zip}' from remote url...");
+                    try {
+                        using (HttpClient client = new HttpClient()) {
+                            HttpResponseMessage response = await client.GetAsync(urlPath_LocZip);
+
+                            if (response.IsSuccessStatusCode) {
+                                using (FileStream fileStream = File.Create(filePath_zip)) {
+                                    await response.Content.CopyToAsync(fileStream);
+                                }
+                                isUnpack = true;
+                                ClearCurrentConsoleLine();
+                                Console.WriteLine($"\r[INIT] Downloaded '{fileName_zip}'");
+                            } else {
+                                Console.WriteLine($"\r[INIT] Fail to download '{fileName_zip}' from remote url, skipping. Status Code: {response.StatusCode}");
+                            }
+                        }
+                    } catch (Exception e) {
+                        Console.WriteLine($"\r[INIT] Fail to download '{fileName_zip}' from remote url, skipping.\n{e.Message}");
+                    }
+                }
+
+                if (isUnpack) {
+                    Console.Write($"[INIT] Unpacking '{fileName_zip}'...");
+                    try {
+                        string extractDirectory = Directory.GetCurrentDirectory();
+
+                        using (ZipFile zip = ZipFile.Read(filePath_zip)) {
+                            zip.ExtractAll(extractDirectory, ExtractExistingFileAction.OverwriteSilently);
+                        }
+
+                        jsonObjectAppSetting[$"installed_version_{selectedLanguage}"] = latestVersion;
+                        isSave = true;
+
+                        ClearCurrentConsoleLine();
+                        Console.WriteLine($"\r[INIT] Unpacked '{fileName_zip}'");
+                    } catch (Exception e) {
+                        ClearCurrentConsoleLine();
+                        Console.WriteLine($"\r[INIT] Fail to unpack '{fileName_zip}', skipping.\n{e.Message}");
+                    }
                 }
             }
 
@@ -315,9 +357,10 @@ namespace BPtranslate {
                 File.AppendAllText(filePath_hosts, toAppend);
             } catch (Exception e) {
                 Console.WriteLine("[ERROR] Unable to access hosts file, please make sure:");
-                Console.WriteLine("- File/Directory Ownership is the current logged-in user");
+                Console.WriteLine("- Temporarily turn off the anti-virus");
+                Console.WriteLine("- Current logged-in user is Administrator");
                 Console.WriteLine("- File/Directory Permission is not Read-Only");
-                Console.WriteLine("- Crrent logged-in user is Administrator");
+                Console.WriteLine("- File/Directory Ownership is the current logged-in user");
                 RemoveCertificate();
                 Console.WriteLine("\nThe program will close in 5 seconds");
                 Console.WriteLine("\n\nAdditional Error Message:");
@@ -334,13 +377,17 @@ namespace BPtranslate {
                 if (textHostsFile.Contains(redirectEntry)) {
                     File.WriteAllText(filePath_hosts, textHostsFile.Replace(redirectEntry, ""));
                 }
-            } catch (Exception) {
+            } catch (Exception e) {
                 Console.WriteLine("[ERROR] Unable to access hosts file, please make sure:");
-                Console.WriteLine("- File/Directory Ownership is the current logged-in user");
-                Console.WriteLine("- File/Directory Permission is not Read-Only");
+                Console.WriteLine("- Temporarily turn off the anti-virus");
                 Console.WriteLine("- Current logged-in user is Administrator");
+                Console.WriteLine("- File/Directory Permission is not Read-Only");
+                Console.WriteLine("- File/Directory Ownership is the current logged-in user");
                 RemoveCertificate();
                 Console.WriteLine("\nThe program will close in 5 seconds");
+                Console.WriteLine("\n\nAdditional Error Message:");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 Environment.Exit(1);
             }
