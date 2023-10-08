@@ -51,6 +51,10 @@ Then it creates a server at localhost that proxies all requests to the real serv
 Current available language is:
 - English = `en`
 - Indonesia = `id`
+- Espanol = `es`
+- Portugues = `pt`
+- Russian = `ru`
+- Deutsch = `de`
 
 ## How to turn on/off auto-update
 
