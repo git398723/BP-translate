@@ -55,7 +55,7 @@ Current available language is:
 - Indonesia = `id`
 - Espanol = `es`
 - Portugues = `pt`
-- Russian = `en-ru` or `ru-ru`
+- Russian = `ru`
 - Deutsch = `de`
 
 ## How to turn on/off auto-update
