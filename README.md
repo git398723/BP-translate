@@ -13,6 +13,7 @@ So far it does not work if you use a proxy for Blue Protocol. VPN is fine.
 ## About this repository
 
 Thanks to the original creator (https://github.com/ArtFect/BP-translate) to make this great app.
+
 This repository purpose is used to host the modified code, and provide remote setting for auto-update translation feature.
 
 ## Feature ahead original repository
@@ -20,7 +21,8 @@ This repository purpose is used to host the modified code, and provide remote se
 1. Fixed "Translation sent" but in the game didn't translated.
 2. Auto-Update to the Latest Translation each time `BP-translate.exe` opened.
 
-![image](https://github.com/DOTzX/BP-translate/assets/16914200/c47c7feb-7c35-40dc-b053-80f1c3610f4f)
+![image](https://github.com/DOTzX/BP-translate/assets/16914200/090bd844-2b23-4cbc-a677-09db281ca299)
+
 
 # Frequently Asked Question
 
@@ -53,13 +55,19 @@ Current available language is:
 - Indonesia = `id`
 - Espanol = `es`
 - Portugues = `pt`
-- Russian = `ru`
+- Russian = `en-ru` or `ru-ru`
 - Deutsch = `de`
 
 ## How to turn on/off auto-update
 
 1. Open file using notepad: `bptl_setting.json`.
 2. Change value of `auto_update` to `true` or `false`
+3. Save.
+
+## How to turn online/offline mode of the application
+
+1. Open file using notepad: `bptl_setting.json`.
+2. Change value of `online_mode` to `true` or `false`
 3. Save.
 
 # Known issue
@@ -71,4 +79,5 @@ To fix this, run the program again and close normally via X.  Or you can go to `
 # Known project
 
 Original Creator of this Repository = https://github.com/ArtFect/BP-translate
+
 Full Translation Repository = https://github.com/digitalstars/BlueProtocol-Translate
