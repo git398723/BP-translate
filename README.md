@@ -57,7 +57,7 @@ Current available language is:
 - Portugues = `pt`
 - Deutsch = `de`
 - Russian = `ru`
-- Russian without English translation = `ru-ru` (need more localization)
+- Russian without English translation = `ru-ru`
 - Francais = `fr` (need more localization)
 - Italian = `it` (need more localization)
 
