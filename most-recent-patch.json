@@ -1,8 +1,8 @@
 {
 	"_appver": "1.4.0.0",
 	"_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it"],
-	"en": [20231008.1545, "English", "https://cdn.discordapp.com/attachments/295519814972342273/1160471902595334224/loc.zip"],
-	"id": [20231008.1545, "Indonesia", "https://cdn.discordapp.com/attachments/295519814972342273/1160472073181876264/loc.zip"],
+	"en": [20231026.2000, "English", "https://cdn.discordapp.com/attachments/1127480665257029682/1167058584908070942/loc_en.zip"],
+	"id": [20231026.2000, "Indonesia", "https://cdn.discordapp.com/attachments/1127480665257029682/1167058784691179591/loc_id.zip"],
 	"es": [20230921.2050, "Espanol", "https://cdn.discordapp.com/attachments/295519814972342273/1160484357111296103/loc.zip"],
 	"pt": [20230921.2050, "Portugues", "https://cdn.discordapp.com/attachments/295519814972342273/1160484175179169862/loc.zip"],
 	"de": [20230921.2050, "Deutsch", "https://cdn.discordapp.com/attachments/295519814972342273/1160483744646451220/loc.zip"],
