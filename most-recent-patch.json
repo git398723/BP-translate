@@ -1,13 +1,13 @@
 {
 	"_appver": "1.4.0.0",
 	"_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it"],
-	"en": [20231026.2000, "English", "https://cdn.discordapp.com/attachments/1127480665257029682/1167058584908070942/loc_en.zip"],
-	"id": [20231026.2000, "Indonesia", "https://cdn.discordapp.com/attachments/1127480665257029682/1167058784691179591/loc_id.zip"],
-	"es": [20230921.2050, "Espanol", "https://cdn.discordapp.com/attachments/295519814972342273/1160484357111296103/loc.zip"],
-	"pt": [20230921.2050, "Portugues", "https://cdn.discordapp.com/attachments/295519814972342273/1160484175179169862/loc.zip"],
-	"de": [20230921.2050, "Deutsch", "https://cdn.discordapp.com/attachments/295519814972342273/1160483744646451220/loc.zip"],
-	"ru": [20230921.2050, "Russian", "https://cdn.discordapp.com/attachments/295519814972342273/1160485101298262046/loc.zip"],
-	"ru-ru": [20230921.2050, "Russian", "https://cdn.discordapp.com/attachments/295519814972342273/1160535245678968952/loc.zip"],
-	"fr": [20230921.2050, "Francais", "https://cdn.discordapp.com/attachments/295519814972342273/1160535056297766922/loc.zip"],
-	"it": [20230921.2050, "Italian", "https://cdn.discordapp.com/attachments/295519814972342273/1160534937296978021/loc.zip"]
+	"en": [20231028.1740, "English", "https://cdn.discordapp.com/attachments/295519814972342273/1167751380765790238/loc_en.zip"],
+	"id": [20231028.1740, "Indonesia", "https://cdn.discordapp.com/attachments/295519814972342273/1167751380451213342/loc_id.zip"],
+	"es": [20231028.1740, "Espanol", "https://cdn.discordapp.com/attachments/295519814972342273/1167751382372204564/loc_es.zip"],
+	"pt": [20231028.1740, "Portugues", "https://cdn.discordapp.com/attachments/295519814972342273/1167751383521443930/loc_pt.zip"],
+	"de": [20231028.1740, "Deutsch", "https://cdn.discordapp.com/attachments/295519814972342273/1167751381369765938/loc_de.zip"],
+	"ru": [20231028.1740, "Russian", "https://cdn.discordapp.com/attachments/295519814972342273/1167751381818560512/loc_en-ru.zip"],
+	"fr": [20231028.1740, "Francais", "https://cdn.discordapp.com/attachments/295519814972342273/1167751382783250542/loc_fr.zip"],
+	"it": [20231028.1740, "Italian", "https://cdn.discordapp.com/attachments/295519814972342273/1167751383068450866/loc_it.zip"],
+	"ru-ru": [20231028.1740, "Russian", "https://cdn.discordapp.com/attachments/295519814972342273/1167751381059379230/loc_ru-ru.zip"]
 }
