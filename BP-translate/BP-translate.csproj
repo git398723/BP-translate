@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2EB7ACC0-4823-46F4-A356-82431480773B}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>BP_translate</RootNamespace>
-    <AssemblyName>BP-translate</AssemblyName>
+    <RootNamespace>app</RootNamespace>
+    <AssemblyName>app</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
