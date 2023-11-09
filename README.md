@@ -58,8 +58,10 @@ Current available language is:
 - Deutsch = `de`
 - Russian = `ru`
 - Russian without English translation = `ru-ru`
-- Francais = `fr` (need more localization)
-- Italian = `it` (need more localization)
+- Italian = `it` (need more localization @ server)
+- Francais = `fr` (need more localization @ client+server)
+- Arabic = `ar` (need more localization @ client+server)
+- Kurdish = `ku` (need more localization @ client+server)
 
 ## How to turn on/off auto-update
 
