@@ -1,6 +1,6 @@
 {
 	"_appver": "1.4.0.0",
-	"_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it", "ar", "ku"],
+	"_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it", "ar", "vi"],
 	"de": [20231203.0700, "Deutsch", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614041116782/loc_de.zip"],
 	"en": [20231203.0700, "English", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614661853356/loc_en.zip"],
 	"ru": [20231203.0700, "Russian", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614359867412/loc_en-ru.zip"],
@@ -10,6 +10,6 @@
 	"pt": [20231203.0700, "Portugues", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631615932747846/loc_pt.zip"],
 	"fr": [20231203.0700, "Francais (en)", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614661853356/loc_en.zip"],
 	"ar": [20231203.0700, "Arabic (en)", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614661853356/loc_en.zip"],
-	"ku": [20231203.0700, "Kurdish (en)", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614661853356/loc_en.zip"],
+	"vi": [20231203.0700, "Vietnamese (en)", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631614661853356/loc_en.zip"],
 	"ru-ru": [20231203.0700, "Russian", "https://cdn.discordapp.com/attachments/1180631542507253890/1180631616234721311/loc_ru-ru.zip"]
 }
