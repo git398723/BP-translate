@@ -21,8 +21,7 @@ This repository purpose is used to host the modified code, and provide remote se
 1. Fixed "Translation sent" but in the game didn't translated.
 2. Auto-Update to the Latest Translation each time `BP-translate.exe` opened.
 
-![image](https://github.com/DOTzX/BP-translate/assets/16914200/090bd844-2b23-4cbc-a677-09db281ca299)
-
+![image](https://github.com/DOTzX/BP-translate/assets/16914200/48c6dc7a-7aab-4073-aebd-82050fa73f22)
 
 # Frequently Asked Question
 
@@ -46,7 +45,7 @@ Then it creates a server at localhost that proxies all requests to the real serv
 
 1. Make sure `BP-translate.exe` is closed.
 2. Open file using notepad: `bptl_setting.json`.
-3. Change value of `selected_language` to available language.
+3. Change value of `server_selected_language` or `client_selected_language`, to available language.
 4. Save.
 5. Reopen the `BP-translate.exe`
 
@@ -61,12 +60,12 @@ Current available language is:
 - Italian = `it` (need more localization @ server)
 - Francais = `fr` (need more localization @ client+server)
 - Arabic = `ar` (need more localization @ client+server)
-- Kurdish = `ku` (need more localization @ client+server)
+- Vietnames = `vi` (need more localization @ client+server)
 
 ## How to turn on/off auto-update
 
 1. Open file using notepad: `bptl_setting.json`.
-2. Change value of `auto_update` to `true` or `false`
+2. Change value of `server_auto_update` or `client_auto_update`, to `true` or `false`
 3. Save.
 
 ## How to turn online/offline mode of the application
