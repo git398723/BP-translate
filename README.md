@@ -21,7 +21,8 @@ This repository purpose is used to host the modified code, and provide remote se
 1. Fixed "Translation sent" but in the game didn't translated.
 2. Auto-Update to the Latest Translation each time `BP-translate.exe` opened.
 
-![image](https://github.com/DOTzX/BP-translate/assets/16914200/48c6dc7a-7aab-4073-aebd-82050fa73f22)
+![image](https://github.com/DOTzX/BP-translate/assets/16914200/769506ab-25fe-4ec3-9056-82aa18bf0715)
+![image](https://github.com/DOTzX/BP-translate/assets/16914200/863573ee-c742-4b30-b65f-80ea0332e493)
 
 # Frequently Asked Question
 
