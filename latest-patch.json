@@ -1,5 +1,6 @@
 {
 	"_appver": "1.5.0.0",
+    "dll": ["23f60a4e96d82906e75f9e34e95265a5", "https://cdn.discordapp.com/attachments/1180631542507253890/1200458489428967474/dinput8.zip"],
     "server": {
         "_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it", "ar", "vi"],
         "de": [20240107.2120, "Deutsch", "https://cdn.discordapp.com/attachments/1180631542507253890/1193542084410486884/loc_de.zip"],
