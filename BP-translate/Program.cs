@@ -18,6 +18,8 @@ using System.Security.Principal;
 using System.Net.NetworkInformation;
 using Microsoft.Win32;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+using System.Globalization;
 
 namespace BPtranslate {
     public sealed class Program {
@@ -45,6 +47,9 @@ namespace BPtranslate {
 
         const string client_fileName_zip = "modpak.zip";
         static string client_filePath_zip = Path.Combine(Directory.GetCurrentDirectory(), client_fileName_zip);
+
+        const string dll_fileName_zip = "dll.zip";
+        static string dll_filePath_zip = Path.Combine(Directory.GetCurrentDirectory(), dll_fileName_zip);
 
         const string locVersionFormat = "YYYYMMDD-HHmm";
         static string applicationVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -143,13 +148,19 @@ namespace BPtranslate {
                 return 1;
             }
 
+            CultureInfo currentCulture = CultureInfo.CurrentCulture;
+            NumberFormatInfo numberFormat = currentCulture.NumberFormat;
+
             string bpDirectory = "";
             bool isSave = false;
             bool server_isDownload = !File.Exists(filePath_json);
             bool server_isUnpack = false;
-            bool client_isDownload = !File.Exists(client_filePath_zip);
+            bool client_isDownload = false;
             bool client_isUnpack = false;
-            bool client_isPatchedDllDetected = false;
+            bool dll_isDownload = false;
+            bool dll_isUnpack = false;
+            bool dll_isInstalled = false;
+            string dll_installedVersion = "".PadRight(32, '0');
 
             JObject jsonObjectAppSetting = new JObject();
             bool isOnlineMode = true;
@@ -171,6 +182,8 @@ namespace BPtranslate {
             string client_alternativeLanguageName = "";
             string client_urlPath_LocZip = "";
             string client_joinedAvailable = "";
+            string dll_latestVersion = "";
+            string dll_urlPath_DllZip = "";
 
             Console.WriteLine($"[INIT] Privilege: {IsAdministrator}");
 
@@ -321,17 +334,28 @@ namespace BPtranslate {
                 }
             }
 
-            client_isPatchedDllDetected = !string.IsNullOrEmpty(bpDirectory) ? File.Exists(Path.Combine(bpDirectory, dirPath_BpBinaries, fileName_patchDll)) : false;
+            dll_isInstalled = !string.IsNullOrEmpty(bpDirectory) ? File.Exists(Path.Combine(bpDirectory, dirPath_BpBinaries, fileName_patchDll)) : false;
+            if (dll_isInstalled) dll_installedVersion = MD5File(Path.Combine(bpDirectory, dirPath_BpBinaries, fileName_patchDll));
+            dll_isDownload = !dll_isInstalled;
+
+            if (client_installedModPakVersion != "Unable to detect" && client_installedModPakVersion != "Not installed" && client_installedModPakVersion.Length == locVersionFormat.Length && client_installedModPakVersion != client_installedVersion.AppLocVersioning()) {
+                string versionFormat = client_installedModPakVersion.Replace('-', numberFormat.NumberDecimalSeparator.ToCharArray()[0]);
+                if (double.TryParse(versionFormat, out double result)) {
+                    client_installedVersion = result;
+                    jsonObjectAppSetting[$"client_installed_version_{client_selectedLanguage}"] = client_installedVersion;
+                    isSave = true;
+                }
+            }
 
             Console.WriteLine($"[APP] Online Mode: {isOnlineMode}");
-            Console.WriteLine($"[APP] DLL Installed on BP Directory: {client_isPatchedDllDetected}");
-            Console.WriteLine($"[APP] PAK Installed Version on BP Directory: {client_installedModPakVersion}");
+            Console.WriteLine($"[APP] Installed Version: {applicationVersion}");
+            // Console.WriteLine($"[APP] DLL Installed on BP Directory: {dll_isInstalled}");
+            // Console.WriteLine($"[APP] PAK Installed Version on BP Directory: {client_installedModPakVersion}");
 
             if (!isOnlineMode) {
-                Console.WriteLine($"[APP] Version: {applicationVersion}");
-                Console.WriteLine($"[LOC/PAK] Auto Update: False (Offline Mode), Actual: LOC={server_isAutoUpdate} / PAK={client_isAutoUpdate}");
-                Console.WriteLine($"[LOC/PAK] Selected Language: LOC={server_selectedLanguage} / PAK={client_selectedLanguage}");
-                Console.WriteLine($"[LOC/PAK] Installed Version: LOC={server_installedVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')} / PAK={client_installedVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                Console.WriteLine($"[LOC] Installed Version: {server_installedVersion.AppLocVersioning()} [{server_selectedLanguage}]");
+                Console.WriteLine($"[PAK] Installed Version: {client_installedVersion.AppLocVersioning()} [{client_selectedLanguage}]");
+                Console.WriteLine($"[DLL] Installed Version: {dll_installedVersion}");
             } else {
                 Console.Write($"[INIT] Loading '{fileName_LatestPatch}' from remote url...");
                 try {
@@ -354,6 +378,8 @@ namespace BPtranslate {
 
                 if (jsonOjectMostRecentPatch.Properties().Any()) {
                     appLatestVersion = (string)jsonOjectMostRecentPatch["_appver"];
+                    dll_latestVersion = (string)(jsonOjectMostRecentPatch["dll"] as JArray)[0];
+                    dll_urlPath_DllZip = (string)(jsonOjectMostRecentPatch["dll"] as JArray)[1];
                     string[] server_client = { "server", "client" };
                     foreach (string servcli in server_client) {
                         string selectedLanguage = "";
@@ -403,32 +429,38 @@ namespace BPtranslate {
                     }
                 }
 
-                Console.WriteLine($"[APP] Installed Version: {applicationVersion}");
-
                 if (appLatestVersion != "0.0.0.0" && appLatestVersion != applicationVersion) {
                     Console.WriteLine($"[APP] New Version Found: {appLatestVersion}, download: https://github.com/DOTzX/BP-translate/releases");
                 } else {
                     Console.WriteLine($"[APP] Latest Version: {appLatestVersion}");
                 }
 
-                if (server_joinedAvailable.Length > 0) Console.WriteLine($"[LOC] Available language: {server_joinedAvailable}");
-                if (client_joinedAvailable.Length > 0) Console.WriteLine($"[PAK] Available language: {client_joinedAvailable}");
-                Console.WriteLine($"[LOC/PAK] Auto Update: LOC={server_isAutoUpdate} / PAK={client_isAutoUpdate}");
-                Console.WriteLine($"[LOC/PAK] Selected Language: LOC={server_selectedLanguage}{server_alternativeLanguageName} / PAK={client_selectedLanguage}{client_alternativeLanguageName}");
-                Console.WriteLine($"[LOC/PAK] Installed Version: LOC={server_installedVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')} / PAK={client_installedVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                if (server_joinedAvailable != client_joinedAvailable) {
+                    if (server_joinedAvailable.Length > 0) Console.WriteLine($"[LOC] Available language: {server_joinedAvailable}");
+                    if (client_joinedAvailable.Length > 0) Console.WriteLine($"[PAK] Available language: {client_joinedAvailable}");
+                } else {
+                    if (client_joinedAvailable.Length > 0) Console.WriteLine($"[LOC/PAK] Available language: {server_joinedAvailable}");
+                }
 
                 if (server_latestVersion != 0.0 && server_latestVersion > server_installedVersion) {
                     if (server_isAutoUpdate) server_isDownload = true;
-                    Console.WriteLine($"[LOC] New Version Found: {server_latestVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                    Console.WriteLine($"[LOC] Installed Version: {server_installedVersion.AppLocVersioning()} [{server_selectedLanguage}{server_alternativeLanguageName}] | New Version Found: {server_latestVersion.AppLocVersioning()} (Auto Update: {server_isAutoUpdate})");
                 } else {
-                    Console.WriteLine($"[LOC] Latest Version: {server_latestVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                    Console.WriteLine($"[LOC] Installed Version: {server_installedVersion.AppLocVersioning()} [{server_selectedLanguage}{server_alternativeLanguageName}] (Latest Version)");
                 }
 
                 if (client_latestVersion != 0.0 && client_latestVersion > client_installedVersion) {
                     if (client_isAutoUpdate) client_isDownload = true;
-                    Console.WriteLine($"[PAK] New Version Found: {client_latestVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                    Console.WriteLine($"[PAK] Installed Version: {client_installedVersion.AppLocVersioning()} [{client_selectedLanguage}{client_alternativeLanguageName}] | New Version Found: {client_latestVersion.AppLocVersioning()} (Auto Update: {client_isAutoUpdate})");
                 } else {
-                    Console.WriteLine($"[PAK] Latest Version: {client_latestVersion.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0')}");
+                    Console.WriteLine($"[PAK] Installed Version: {client_installedVersion.AppLocVersioning()} [{client_selectedLanguage}{client_alternativeLanguageName}] (Latest Version)");
+                }
+
+                if (dll_latestVersion != "" && dll_latestVersion != dll_installedVersion) {
+                    if (client_isAutoUpdate) dll_isDownload = true;
+                    Console.WriteLine($"[DLL] Installed Version: {dll_installedVersion} | New Version Found: {dll_latestVersion} (Auto Update: {client_isAutoUpdate})");
+                } else {
+                    Console.WriteLine($"[DLL] Installed Version: {dll_installedVersion} (Latest Version)");
                 }
 
                 if (server_isDownload) {
@@ -454,7 +486,7 @@ namespace BPtranslate {
                 }
 
                 if (server_isUnpack) {
-                    Console.Write($"[INIT] Unpacking '{server_fileName_zip}'...");
+                    Console.Write($"[INIT] Unpacking '{server_fileName_zip}' into current directory...");
                     try {
                         string extractDirectory = Directory.GetCurrentDirectory();
 
@@ -466,7 +498,7 @@ namespace BPtranslate {
                         isSave = true;
 
                         ClearCurrentConsoleLine();
-                        Console.WriteLine($"\r[INIT] Unpacked '{server_fileName_zip}'");
+                        Console.WriteLine($"\r[INIT] Unpacked '{server_fileName_zip}' into current directory");
                     } catch (Exception e) {
                         ClearCurrentConsoleLine();
                         Console.WriteLine($"\r[INIT] Fail to unpack '{server_fileName_zip}', skipping.\n{e.Message}");
@@ -474,36 +506,31 @@ namespace BPtranslate {
                 }
 
                 if (client_isDownload) {
-                    if (client_isPatchedDllDetected) {
-                        Console.Write($"[INIT] Downloading '{client_fileName_zip}' from remote url...");
-                        try {
-                            using (HttpClient client = new HttpClient()) {
-                                HttpResponseMessage response = await client.GetAsync(client_urlPath_LocZip);
+                    Console.Write($"[INIT] Downloading '{client_fileName_zip}' from remote url...");
+                    try {
+                        using (HttpClient client = new HttpClient()) {
+                            HttpResponseMessage response = await client.GetAsync(client_urlPath_LocZip);
 
-                                if (response.IsSuccessStatusCode) {
-                                    using (FileStream fileStream = File.Create(client_filePath_zip)) {
-                                        await response.Content.CopyToAsync(fileStream);
-                                    }
-                                    client_isUnpack = true;
-                                    ClearCurrentConsoleLine();
-                                    Console.WriteLine($"\r[INIT] Downloaded '{client_fileName_zip}'");
-                                } else {
-                                    Console.WriteLine($"\r[INIT] Fail to download '{client_fileName_zip}' from remote url, skipping. Status Code: {response.StatusCode}");
+                            if (response.IsSuccessStatusCode) {
+                                using (FileStream fileStream = File.Create(client_filePath_zip)) {
+                                    await response.Content.CopyToAsync(fileStream);
                                 }
+                                client_isUnpack = true;
+                                ClearCurrentConsoleLine();
+                                Console.WriteLine($"\r[INIT] Downloaded '{client_fileName_zip}'");
+                            } else {
+                                Console.WriteLine($"\r[INIT] Fail to download '{client_fileName_zip}' from remote url, skipping. Status Code: {response.StatusCode}");
                             }
-                        } catch (Exception e) {
-                            Console.WriteLine($"\r[INIT] Fail to download '{client_fileName_zip}' from remote url, skipping.\n{e.Message}");
                         }
-                    } else {
-                        Console.WriteLine($"[INIT] Canceled downloading '{client_fileName_zip}' from remote url, DLL is not installed.");
+                    } catch (Exception e) {
+                        Console.WriteLine($"\r[INIT] Fail to download '{client_fileName_zip}' from remote url, skipping.\n{e.Message}");
                     }
                 }
 
                 if (client_isUnpack) {
-                    Console.Write($"[INIT] Unpacking '{client_fileName_zip}'...");
+                    string extractDirectory = Path.Combine(bpDirectory, dirPath_BpModPak);
+                    Console.Write($"[INIT] Unpacking '{client_fileName_zip}' into '{extractDirectory}'...");
                     try {
-                        string extractDirectory = Path.Combine(bpDirectory, dirPath_BpModPak);
-
                         if (!Directory.Exists(extractDirectory)) Directory.CreateDirectory(extractDirectory);
 
                         using (ZipFile zip = ZipFile.Read(client_filePath_zip)) {
@@ -514,10 +541,50 @@ namespace BPtranslate {
                         isSave = true;
 
                         ClearCurrentConsoleLine();
-                        Console.WriteLine($"\r[INIT] Unpacked '{client_fileName_zip}'");
+                        Console.WriteLine($"\r[INIT] Unpacked '{client_fileName_zip}' into '{extractDirectory}'");
                     } catch (Exception e) {
                         ClearCurrentConsoleLine();
                         Console.WriteLine($"\r[INIT] Fail to unpack '{client_fileName_zip}', skipping.\n{e.Message}");
+                    }
+                }
+
+                if (dll_isDownload) {
+                    Console.Write($"[INIT] Downloading '{dll_fileName_zip}' from remote url...");
+                    try {
+                        using (HttpClient client = new HttpClient()) {
+                            HttpResponseMessage response = await client.GetAsync(dll_urlPath_DllZip);
+
+                            if (response.IsSuccessStatusCode) {
+                                using (FileStream fileStream = File.Create(dll_filePath_zip)) {
+                                    await response.Content.CopyToAsync(fileStream);
+                                }
+                                dll_isUnpack = true;
+                                ClearCurrentConsoleLine();
+                                Console.WriteLine($"\r[INIT] Downloaded '{dll_fileName_zip}'");
+                            } else {
+                                Console.WriteLine($"\r[INIT] Fail to download '{dll_fileName_zip}' from remote url, skipping. Status Code: {response.StatusCode}");
+                            }
+                        }
+                    } catch (Exception e) {
+                        Console.WriteLine($"\r[INIT] Fail to download '{dll_fileName_zip}' from remote url, skipping.\n{e.Message}");
+                    }
+                }
+
+                if (dll_isUnpack) {
+                    string extractDirectory = Path.Combine(bpDirectory, dirPath_BpBinaries);
+                    Console.Write($"[INIT] Unpacking '{dll_fileName_zip}' into '{extractDirectory}'...");
+                    try {
+                        if (!Directory.Exists(extractDirectory)) Directory.CreateDirectory(extractDirectory);
+
+                        using (ZipFile zip = ZipFile.Read(dll_filePath_zip)) {
+                            zip.ExtractAll(extractDirectory, ExtractExistingFileAction.OverwriteSilently);
+                        }
+
+                        ClearCurrentConsoleLine();
+                        Console.WriteLine($"\r[INIT] Unpacked '{dll_fileName_zip}' into '{extractDirectory}'");
+                    } catch (Exception e) {
+                        ClearCurrentConsoleLine();
+                        Console.WriteLine($"\r[INIT] Fail to unpack '{dll_fileName_zip}', skipping.\n{e.Message}");
                     }
                 }
             }
@@ -670,6 +737,15 @@ namespace BPtranslate {
             return -1;
         }
 
+        static string MD5File(string filePath) {
+            using (var md5 = MD5.Create()) {
+                using (var stream = File.OpenRead(filePath)) {
+                    byte[] hash = md5.ComputeHash(stream);
+                    return BitConverter.ToString(hash).Replace("-", "").ToLower();
+                }
+            }
+        }
+
         //Handle console close
         static bool ConsoleEventCallback(int eventType) {
             if (eventType == 2) {
@@ -682,5 +758,16 @@ namespace BPtranslate {
         private delegate bool ConsoleEventDelegate(int eventType);
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleCtrlHandler(ConsoleEventDelegate callback, bool add);
+    }
+
+    public static class DoubleExtensions {
+        const string locVersionFormat = "YYYYMMDD-HHmm";
+
+        public static string AppLocVersioning(this double input) {
+            string ver = input.ToString().Replace(',', '-').Replace('.', '-').PadRight(locVersionFormat.Length, '0');
+            char[] _version = ver.ToCharArray();
+            _version[8] = '-';
+            return new string(_version);
+        }
     }
 }
