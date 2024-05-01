@@ -1,6 +1,6 @@
 {
 	"_appver": "1.6.0.0",
-	"dll": ["23f60a4e96d82906e75f9e34e95265a5", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/dll/dinput8.zip"],
+	"dll": ["b26eadc703a626446f861c87c3396ea2", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/dll/dinput8.zip"],
 	"server": {
 		"_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it", "ar", "vi"],
 		"de": [20240107.2120, "Deutsch", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/server/loc_de.zip"],
@@ -17,16 +17,16 @@
 	},
 	"client": {
 		"_available": ["en", "id", "es", "pt", "de", "ru", "ru-ru", "fr", "it", "ar", "vi"],
-		"de": [20240107.2120, "Deutsch", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-de_1_P.zip"],
+		"de": [20240107.2120, "Deutsch (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
 		"en": [20240107.2120, "English", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
-		"ru": [20240107.2120, "Russian", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-ru_1_P.zip"],
-		"es": [20240107.2120, "Espanol", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-es_1_P.zip"],
-		"id": [20240107.2120, "Indonesia", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-id_1_P.zip"],
-		"it": [20240107.2120, "Italian", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-it_1_P.zip"],
-		"pt": [20240107.2120, "Portugues", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-pt_1_P.zip"],
+		"ru": [20240107.2120, "Russian (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
+		"es": [20240107.2120, "Espanol (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
+		"id": [20240107.2120, "Indonesia (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
+		"it": [20240107.2120, "Italian (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
+		"pt": [20240107.2120, "Portugues (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
 		"fr": [20240107.2120, "Francais (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
 		"ar": [20240107.2120, "Arabic (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
 		"vi": [20240107.2120, "Vietnamese (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"],
-		"ru-ru": [20240107.2120, "Russian", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/ru-ru_1_P.zip"]
+		"ru-ru": [20240107.2120, "Russian (en)", "https://github.com/DOTzX/BP-translate/raw/dev/latest-patch/client/en-en_1_P.zip"]
 	}
 }
